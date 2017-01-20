@@ -348,7 +348,8 @@
                 }
 
                 NSString* sessionCategory = bPlayAudioWhenScreenIsLocked ? AVAudioSessionCategoryPlayback : AVAudioSessionCategorySoloAmbient;
-                [self.avSession setCategory:sessionCategory error:&err];
+                // [self.avSession setCategory:sessionCategory error:&err];
+                [self.avSession setCategory:AVAudioSessionCategoryPlayAndRecord mode:AVAudioSessionModeVoiceChat options:AVAudioSessionCategoryOptionDefaultToSpeaker error:&err];
                 if (![self.avSession setActive:YES error:&err]) {
                     // other audio with higher priority that does not allow mixing could cause this to fail
                     NSLog(@"Unable to play audio: %@", [err localizedFailureReason]);
@@ -467,9 +468,9 @@
     if (playerError != nil) {
         NSLog(@"Failed to initialize AVAudioPlayer: %@\n", [playerError localizedDescription]);
         audioFile.player = nil;
-        if (self.avSession) {
-            [self.avSession setActive:NO error:nil];
-        }
+        // if (self.avSession) {
+        //     [self.avSession setActive:NO error:nil];
+        // }
         bError = YES;
     } else {
         audioFile.player.mediaId = mediaId;
@@ -614,7 +615,7 @@
                 avPlayer = nil;
             }
             if (self.avSession) {
-                [self.avSession setActive:NO error:nil];
+                // [self.avSession setActive:NO error:nil];
                 self.avSession = nil;
             }
             [[self soundCache] removeObjectForKey:mediaId];
@@ -811,9 +812,9 @@
         // jsString = [NSString stringWithFormat: @"%@(\"%@\",%d,%d);", @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_ERROR, MEDIA_ERR_DECODE];
         jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%@);", @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_ERROR, [self createMediaErrorWithCode:MEDIA_ERR_DECODE message:nil]];
     }
-    if (self.avSession) {
-        [self.avSession setActive:NO error:nil];
-    }
+    // if (self.avSession) {
+    //     [self.avSession setActive:NO error:nil];
+    // }
     [self.commandDelegate evalJs:jsString];
 }
 
@@ -823,9 +824,9 @@
     NSString* jsString = nil;
     jsString = [NSString stringWithFormat:@"%@(\"%@\",%d,%d);", @"cordova.require('cordova-plugin-media.Media').onStatus", mediaId, MEDIA_STATE, MEDIA_STOPPED];
 
-    if (self.avSession) {
-        [self.avSession setActive:NO error:nil];
-    }
+    // if (self.avSession) {
+    //     [self.avSession setActive:NO error:nil];
+    // }
     [self.commandDelegate evalJs:jsString];
 }
 
@@ -935,6 +936,21 @@
           [self.commandDelegate evalJs:jsString];
       }
  }
+
+- (void)showAudioSessionProperties
+{
+    AVAudioSession *avSession2 = [AVAudioSession sharedInstance];
+    if(avSession2) {
+        NSLog(@"Output number of channels: %@", @(avSession2.outputNumberOfChannels));
+        NSLog(@"Preferred output number of channels: %@", @(avSession2.preferredOutputNumberOfChannels));
+        NSLog(@"Maximum output number of channels: %@", @(avSession2.maximumOutputNumberOfChannels));
+        NSLog(@"Session category: %@", avSession2.category);
+        NSLog(@"Session mode: %@", avSession2.mode);
+        NSLog(@"Session options: %@", @(avSession2.categoryOptions));
+    } else {
+        NSLog(@"No audio session configured");
+    }
+}
 
 @end
 
